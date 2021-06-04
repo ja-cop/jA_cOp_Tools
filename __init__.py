@@ -17,6 +17,7 @@ import bpy
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import StringProperty, BoolProperty, FloatProperty
 from bpy.types import Operator, Menu, AddonPreferences
+from bpy.app.handlers import persistent
 from mathutils import Vector
 
 # Standard library imports
@@ -259,6 +260,17 @@ def mode_switch():
 
 subscription_owner = object()
 
+@persistent
+def subscribe_to_mode_change(dummy):
+    bpy.msgbus.clear_by_owner(subscription_owner)
+    bpy.msgbus.subscribe_rna(
+        key=(bpy.types.Object, 'mode'),
+        owner=subscription_owner,
+        args=(),
+        notify=mode_switch,
+        options={'PERSISTENT'} # Not sure what this does
+    )
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -266,16 +278,13 @@ def register():
     for menu, entry in menu_entries:
         menu.append(entry)
 
-    bpy.msgbus.clear_by_owner(subscription_owner)
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.Object, 'mode'),
-        owner=subscription_owner,
-        args=(),
-        notify=mode_switch,
-        options={'PERSISTENT'}
-    )
+    bpy.app.handlers.load_post.append(subscribe_to_mode_change)
+
+    # When the addon is enabled after loading a file, we need to subscribe here
+    subscribe_to_mode_change(None)
 
 def unregister():
+    bpy.app.handlers.load_post.remove(subscribe_to_mode_change)
     bpy.msgbus.clear_by_owner(subscription_owner)
 
     for cls in reversed(classes):
