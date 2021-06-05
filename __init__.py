@@ -31,8 +31,8 @@ class JToolsAddonPreferences(AddonPreferences):
 
     warn_shapekey_edit: BoolProperty(
         name='Warn on editing shape key',
-        default=False
-    )
+        default=False,
+        description='Show a popup warning when entering edit mode on a mesh shape key')
 
     def draw(self, context):
         self.layout.prop(self, 'warn_shapekey_edit')
@@ -43,7 +43,9 @@ class OBJECT_OT_connect_selected_bones(Operator):
     bl_label = 'Connect Selected Bones'
     bl_options = {'REGISTER', 'UNDO'}
 
-    connected: BoolProperty(name='Connected', default=True)
+    connected: BoolProperty(name='Connected',
+                            default=True,
+                            description='Whether the selected bones should be connected or disconnected')
 
     def execute(self, context):
         for bone in context.selected_editable_bones[:]:
@@ -56,7 +58,10 @@ class OBJECT_OT_connect_bones_by_distance(Operator):
     bl_label = 'Connect Bones By Distance'
     bl_options = {'REGISTER', 'UNDO'}
 
-    connected: BoolProperty(name='Connected', default=True)
+    connected: BoolProperty(name='Connected',
+                            default=True,
+                            description='Whether the affected bones should be connected or disconnected')
+
     threshold: FloatProperty(name='Distance',
                              default=0.001,
                              soft_min=0.001,
@@ -64,7 +69,8 @@ class OBJECT_OT_connect_bones_by_distance(Operator):
                              step=1,
                              precision=3,
                              unit='LENGTH',
-                             subtype='DISTANCE')
+                             subtype='DISTANCE',
+                             description="Connect bone when its head is within this distance from the parent's tail")
 
     def execute(self, context):
         for bone in context.visible_bones:
@@ -98,8 +104,13 @@ class OBJECT_OT_load_unity_blendshape_anim(Operator, ImportHelper):
         options={'HIDDEN'},
     )
 
-    clear: BoolProperty(name='Clear other shape keys', default=True)
-    unpin_active_shape_key: BoolProperty(name='Unpin active shape key', default=True)
+    clear: BoolProperty(name='Clear other shape keys',
+                        default=True,
+                        description='Set to zero each shape key unaffected by the loaded animation clip')
+
+    unpin_active_shape_key: BoolProperty(name='Unpin active shape key',
+                                         default=True,
+                                         description='Disable the shape key lock')
 
     def execute(self, context):
         obj = context.active_object
@@ -181,8 +192,13 @@ class OBJECT_OT_save_unity_toggle_anims(Operator):
     )
     filter_folder: BoolProperty(default=True, options={'HIDDEN'})
 
-    enable_anim_filename: StringProperty(name='Enable', default='Enable.anim')
-    disable_anim_filename: StringProperty(name='Disable', default='Disable.anim')
+    enable_anim_filename: StringProperty(name='Enable',
+                                         default='Enable.anim',
+                                         description='Filename of clip which sets IsActive to true')
+
+    disable_anim_filename: StringProperty(name='Disable',
+                                          default='Disable.anim',
+                                          description='Filename of clip which sets IsActive to false')
 
     def execute(self, context):
         dir_path = self.directory
