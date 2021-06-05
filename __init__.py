@@ -121,6 +121,12 @@ class OBJECT_OT_load_unity_blendshape_anim(Operator, ImportHelper):
             if name in key_blocks:
                 key_blocks[name].value = value
 
+        num_changed = len(shape_mix)
+        basename = os.path.basename(self.filepath)
+        if num_changed > 0:
+            self.report({'INFO'}, f'{basename}: loaded {num_changed} shape key weights')
+        else:
+            self.report({'WARNING'}, f'{basename}: no applicable shape keys found')
         return {'FINISHED'}
 
 class OBJECT_OT_save_unity_blendshape_anim(Operator, ExportHelper):
