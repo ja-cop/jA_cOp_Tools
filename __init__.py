@@ -152,8 +152,8 @@ class OBJECT_MT_unity_blendshape_menu(Menu):
     bl_label = 'Unity'
 
     def draw(self, context):
-        self.layout.operator(OBJECT_OT_load_unity_blendshape_anim.bl_idname, text='Load Animation', icon='FILEBROWSER')
-        self.layout.operator(OBJECT_OT_save_unity_blendshape_anim.bl_idname, text='Save Animation', icon='FILE_TICK')
+        self.layout.operator(OBJECT_OT_load_unity_blendshape_anim.bl_idname, text='Load Blendshape Animation', icon='FILEBROWSER')
+        self.layout.operator(OBJECT_OT_save_unity_blendshape_anim.bl_idname, text='Save Blendshape Animation', icon='FILE_TICK')
 
 def unity_blendshape_menu(self, context):
     self.layout.menu(OBJECT_MT_unity_blendshape_menu.bl_idname)
