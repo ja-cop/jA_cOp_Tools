@@ -99,6 +99,7 @@ class OBJECT_OT_load_unity_blendshape_anim(Operator, ImportHelper):
     )
 
     clear: BoolProperty(name='Clear other shape keys', default=True)
+    unpin_active_shape_key: BoolProperty(name='Unpin active shape key', default=True)
 
     def execute(self, context):
         obj = context.active_object
@@ -112,6 +113,9 @@ class OBJECT_OT_load_unity_blendshape_anim(Operator, ImportHelper):
 
         if self.clear:
             bpy.ops.object.shape_key_clear()
+
+        if self.unpin_active_shape_key:
+            obj.show_only_shape_key = False
 
         for name, value in shape_mix.items():
             if name in key_blocks:
