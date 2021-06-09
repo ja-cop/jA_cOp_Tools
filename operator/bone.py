@@ -41,10 +41,15 @@ class OBJECT_OT_connect_bones_by_distance(Operator):
                              description="Connect bone when its head is within this distance from the parent's tail")
 
     def execute(self, context):
-        for bone in context.visible_bones:
+        count = 0
+        for bone in context.selected_editable_bones[:]:
             parent = bone.parent
             if parent:
                 distance = (Vector(bone.head) - Vector(parent.tail)).length
-                if distance < self.threshold:
+                if distance < self.threshold and bone.use_connect != self.connected:
                     bone.use_connect = self.connected
+                    count += 1
+
+        action = 'Connected' if self.connected else 'Disconnected'
+        self.report({'INFO'}, f'{action} {count} bone(s)')
         return {'FINISHED'}
