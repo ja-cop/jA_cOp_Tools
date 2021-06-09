@@ -8,7 +8,7 @@ bl_info = {
 
 import bpy
 from bpy.props import StringProperty, BoolProperty
-from bpy.types import AddonPreferences, Operator
+from bpy.types import AddonPreferences
 from bpy.app.handlers import persistent
 
 from . import menu, unity
@@ -27,30 +27,14 @@ class JToolsAddonPreferences(AddonPreferences):
     def draw(self, context):
         self.layout.prop(self, 'warn_shapekey_edit')
 
-@register_class
-class WarningBox(Operator):
-    bl_idname = 'message.warningbox'
-    bl_label = 'Warning'
-
-    message: StringProperty(default='')
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, width=400)
-
-    def draw(self, context):
-        self.layout.label(text=self.message)
-
 def mode_switch():
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
     warn = addon_prefs.warn_shapekey_edit
     obj = bpy.context.active_object
     if warn and obj and obj.type == 'MESH' and obj.mode == 'EDIT' and obj.active_shape_key_index != 0:
-        bpy.ops.message.warningbox(
-            'INVOKE_DEFAULT',
-            message=f'Editing shape key "{obj.active_shape_key.name}"')
+        def draw(self, context):
+            self.layout.label(text=f'Editing shape key "{obj.active_shape_key.name}"')
+        bpy.context.window_manager.popup_menu(draw, title='Warning', icon='ERROR')
 
 subscription_owner = object()
 
