@@ -6,26 +6,16 @@ bl_info = {
     'description': 'Various tools'
 }
 
-# Reload imports on addon reload
-if 'bpy' in locals():
-    import importlib
-    if 'unity' in locals():
-        importlib.reload(unity)
-
-# Blender imports
 import bpy
-from bpy_extras.io_utils import ImportHelper, ExportHelper
-from bpy.props import StringProperty, BoolProperty, FloatProperty
-from bpy.types import Operator, Menu, AddonPreferences
+from bpy.props import StringProperty, BoolProperty
+from bpy.types import AddonPreferences, Operator
 from bpy.app.handlers import persistent
-from mathutils import Vector
 
-# Standard library imports
-import os.path
+from . import menu, unity
+from .operator import bone, unity
+from .blender_decorator import register_class
 
-# Addon imports
-from . import unity
-
+@register_class
 class JToolsAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -37,206 +27,7 @@ class JToolsAddonPreferences(AddonPreferences):
     def draw(self, context):
         self.layout.prop(self, 'warn_shapekey_edit')
 
-class OBJECT_OT_connect_selected_bones(Operator):
-    """Connect each selected bone to its parent"""
-    bl_idname = 'object.connect_selected_bones'
-    bl_label = 'Connect Selected Bones'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    connected: BoolProperty(name='Connected',
-                            default=True,
-                            description='Whether the selected bones should be connected or disconnected')
-
-    def execute(self, context):
-        for bone in context.selected_editable_bones[:]:
-            bone.use_connect = self.connected
-        return {'FINISHED'}
-
-class OBJECT_OT_connect_bones_by_distance(Operator):
-    """Connect bones by distance to parent"""
-    bl_idname = 'object.connect_bones_by_distance'
-    bl_label = 'Connect Bones By Distance'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    connected: BoolProperty(name='Connected',
-                            default=True,
-                            description='Whether the affected bones should be connected or disconnected')
-
-    threshold: FloatProperty(name='Distance',
-                             default=0.001,
-                             soft_min=0.001,
-                             soft_max=10,
-                             step=1,
-                             precision=3,
-                             unit='LENGTH',
-                             subtype='DISTANCE',
-                             description="Connect bone when its head is within this distance from the parent's tail")
-
-    def execute(self, context):
-        for bone in context.visible_bones:
-            parent = bone.parent
-            if parent:
-                distance = (Vector(bone.head) - Vector(parent.tail)).length
-                if distance < self.threshold:
-                    bone.use_connect = self.connected
-        return {'FINISHED'}
-
-class OBJECT_MT_connect_bones_menu(Menu):
-    bl_idname = 'OBJECT_MT_connect_bones_menu'
-    bl_label = 'Connect Bones'
-
-    def draw(self, context):
-        self.layout.operator(OBJECT_OT_connect_selected_bones.bl_idname, text='Selected')
-        self.layout.operator(OBJECT_OT_connect_bones_by_distance.bl_idname, text='By Distance')
-
-def connect_bones_menu(self, context):
-    self.layout.menu(OBJECT_MT_connect_bones_menu.bl_idname)
-
-class OBJECT_OT_load_unity_blendshape_anim(Operator, ImportHelper):
-    """Load shape key mix from Unity blendshape animation (from first frame)"""
-    bl_idname = 'object.load_unity_blendshape_anim'
-    bl_label = 'Load Unity Blendshape Animation'
-    bl_options = {'REGISTER', 'UNDO'}
-    filename_ext = '.anim'
-
-    filter_glob: StringProperty(
-        default="*.anim",
-        options={'HIDDEN'},
-    )
-
-    clear: BoolProperty(name='Clear other shape keys',
-                        default=True,
-                        description='Set to zero each shape key unaffected by the loaded animation clip')
-
-    unpin_active_shape_key: BoolProperty(name='Unpin active shape key',
-                                         default=True,
-                                         description='Disable the shape key lock')
-
-    def execute(self, context):
-        obj = context.active_object
-        key_blocks = obj.data.shape_keys.key_blocks
-        object_path = unity.make_unity_object_path(obj)
-
-        with open(self.filepath) as f:
-            # Remove YAML tag
-            lines = f.readlines()[3:]
-            shape_mix = unity.anim_clip_to_shape_mix('\n'.join(lines), object_path)
-
-        if self.clear:
-            bpy.ops.object.shape_key_clear()
-
-        if self.unpin_active_shape_key:
-            obj.show_only_shape_key = False
-
-        for name, value in shape_mix.items():
-            if name in key_blocks:
-                key_blocks[name].value = value
-
-        num_changed = len(shape_mix)
-        basename = os.path.basename(self.filepath)
-        if num_changed > 0:
-            self.report({'INFO'}, f'{basename}: loaded {num_changed} shape key weights')
-        else:
-            self.report({'WARNING'}, f'{basename}: no applicable shape keys found')
-        return {'FINISHED'}
-
-class OBJECT_OT_save_unity_blendshape_anim(Operator, ExportHelper):
-    """Save shape key mix as Unity blendshape animation"""
-    bl_idname = 'object.save_unity_blendshape_anim'
-    bl_label = 'Save Unity Blendshape Animation'
-    filename_ext = '.anim'
-
-    filter_glob: StringProperty(
-        default="*.anim",
-        options={'HIDDEN'},
-    )
-
-    def execute(self, context):
-        obj = context.active_object
-        (root, ext) = os.path.splitext(self.filepath)
-        clip_name = os.path.basename(root)
-
-        shape_keys = {}
-        for key in obj.data.shape_keys.key_blocks:
-            if key.value >= 0.01:
-                shape_keys[key.name] = key.value
-
-        object_path = unity.make_unity_object_path(obj)
-        anim_clip = unity.make_blendshape_anim_clip(clip_name, object_path, shape_keys)
-        with open(self.filepath, 'w', encoding='utf-8') as f:
-            f.write(anim_clip)
-
-        return {'FINISHED'}
-
-class OBJECT_MT_unity_blendshape_menu(Menu):
-    bl_idname = 'OBJECT_MT_unity_blendshape_menu'
-    bl_label = 'Unity'
-
-    def draw(self, context):
-        self.layout.operator(OBJECT_OT_load_unity_blendshape_anim.bl_idname, text='Load Blendshape Animation', icon='FILEBROWSER')
-        self.layout.operator(OBJECT_OT_save_unity_blendshape_anim.bl_idname, text='Save Blendshape Animation', icon='FILE_TICK')
-
-def unity_blendshape_menu(self, context):
-    self.layout.menu(OBJECT_MT_unity_blendshape_menu.bl_idname)
-
-class OBJECT_OT_save_unity_toggle_anims(Operator):
-    """Save enable/disable Unity animations"""
-    bl_idname = 'object.save_unity_toggle_anims'
-    bl_label = 'Save Unity Toggle Animations'
-    bl_options = {'REGISTER'}
-
-    # fileselect_add dialog uses these two properties
-    directory: StringProperty(
-        name="Save Location",
-        description="Where to save animation files"
-    )
-    filter_folder: BoolProperty(default=True, options={'HIDDEN'})
-
-    enable_anim_filename: StringProperty(name='Enable',
-                                         default='Enable.anim',
-                                         description='Filename of clip which sets IsActive to true')
-
-    disable_anim_filename: StringProperty(name='Disable',
-                                          default='Disable.anim',
-                                          description='Filename of clip which sets IsActive to false')
-
-    def execute(self, context):
-        dir_path = self.directory
-        objs = context.selected_objects
-        object_paths = [unity.make_unity_object_path(obj) for obj in objs]
-
-        (enable_anim_name, _) = os.path.splitext(self.enable_anim_filename)
-        enable_anim_path = os.path.join(dir_path, self.enable_anim_filename)
-        enable_anim_clip = unity.make_toggle_anim_clip(enable_anim_name, object_paths, is_active=True)
-        with open(enable_anim_path, 'w', encoding='utf-8') as f:
-            f.write(enable_anim_clip)
-
-        (disable_anim_name, _) = os.path.splitext(self.disable_anim_filename)
-        disable_anim_path = os.path.join(dir_path, self.disable_anim_filename)
-        disable_anim_clip = unity.make_toggle_anim_clip(disable_anim_name, object_paths, is_active=False)
-        with open(disable_anim_path, 'w', encoding='utf-8') as f:
-            f.write(disable_anim_clip)
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        active = context.active_object
-        if active:
-            self.enable_anim_filename = active.name + 'Enable.anim'
-            self.disable_anim_filename = active.name + 'Disable.anim'
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-class OBJECT_MT_unity_object_menu(Menu):
-    bl_idname = 'OBJECT_MT_unity_object_menu'
-    bl_label = 'Unity'
-
-    def draw(self, context):
-        self.layout.operator(OBJECT_OT_save_unity_toggle_anims.bl_idname, text='Save Toggle Animations', icon='FILE_TICK')
-
-def unity_object_menu(self, context):
-    self.layout.menu(OBJECT_MT_unity_object_menu.bl_idname)
-
+@register_class
 class WarningBox(Operator):
     bl_idname = 'message.warningbox'
     bl_label = 'Warning'
@@ -251,29 +42,6 @@ class WarningBox(Operator):
 
     def draw(self, context):
         self.layout.label(text=self.message)
-
-classes = [
-    JToolsAddonPreferences,
-
-    OBJECT_OT_connect_selected_bones,
-    OBJECT_OT_connect_bones_by_distance,
-    OBJECT_MT_connect_bones_menu,
-
-    OBJECT_OT_load_unity_blendshape_anim,
-    OBJECT_OT_save_unity_blendshape_anim,
-    OBJECT_MT_unity_blendshape_menu,
-
-    OBJECT_OT_save_unity_toggle_anims,
-    OBJECT_MT_unity_object_menu,
-
-    WarningBox
-]
-
-menu_entries = [
-    (bpy.types.VIEW3D_MT_edit_armature, connect_bones_menu),
-    (bpy.types.MESH_MT_shape_key_context_menu, unity_blendshape_menu),
-    (bpy.types.VIEW3D_MT_object, unity_object_menu)
-]
 
 def mode_switch():
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
@@ -298,23 +66,23 @@ def subscribe_to_mode_change(dummy):
     )
 
 def register():
-    for cls in classes:
+    for cls in blender_decorator.classes:
         bpy.utils.register_class(cls)
 
-    for menu, entry in menu_entries:
+    for menu, entry in blender_decorator.menus:
         menu.append(entry)
 
     bpy.app.handlers.load_post.append(subscribe_to_mode_change)
 
-    # When the addon is enabled after loading a file, we need to subscribe here
+    # In case the addon is enabled after loading a file, we need to subscribe here
     subscribe_to_mode_change(None)
 
 def unregister():
     bpy.app.handlers.load_post.remove(subscribe_to_mode_change)
     bpy.msgbus.clear_by_owner(subscription_owner)
 
-    for cls in reversed(classes):
+    for cls in reversed(blender_decorator.classes):
         bpy.utils.unregister_class(cls)
 
-    for menu, entry in reversed(menu_entries):
+    for menu, entry in reversed(blender_decorator.menus):
         menu.remove(entry)
