@@ -50,6 +50,20 @@ Sets "connected" for each selected bone. Can also be used to disconnect the sele
 
 For every bone on the armature, sets "connected" if the bone's head is within the specified distance of the parent bone's tail. Useful for connecting bones on an imported rig that has the bones aligned but no bones marked "connected".
 
+# Vertex Group Actions
+
+Location: `Object Data Properties (Mesh) > Vertex Groups > Vertex Group Specials > Delete Empty Groups`
+
+## All Empty
+
+Deletes empty vertex groups.
+
+Note: vertex groups containing only zero-weights are not counted as empty and are not deleted by this action. To delete such groups, first use `Weights > Clean` with `Subset = All Groups` in weight paint mode, then use this action.
+
+## Unlocked Empty
+
+Same as above, but locked groups are preserved even when they are empty.
+
 # Warn on editing shape key
 
 Location: this addon's preferences
