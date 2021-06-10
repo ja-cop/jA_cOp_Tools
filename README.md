@@ -50,7 +50,7 @@ Sets "connected" for each selected bone. Can also be used to disconnect the sele
 
 For every bone on the armature, sets "connected" if the bone's head is within the specified distance of the parent bone's tail. Useful for connecting bones on an imported rig that has the bones aligned but no bones marked "connected".
 
-# Vertex Group Actions
+# Delete Empty Vertex Groups
 
 Location: `Object Data Properties (Mesh) > Vertex Groups > Vertex Group Specials > Delete Empty Groups`
 
