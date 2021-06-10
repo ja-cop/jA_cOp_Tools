@@ -7,12 +7,11 @@ bl_info = {
 }
 
 import bpy
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import BoolProperty
 from bpy.types import AddonPreferences
 from bpy.app.handlers import persistent
 
-from . import menu, unity
-from .operator import bone, unity
+from . import menu
 from .blender_decorator import register_class
 
 @register_class

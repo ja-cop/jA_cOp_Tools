@@ -3,6 +3,7 @@ from bpy.types import Menu
 
 from .operator.bone import *
 from .operator.unity import *
+from .operator.vertexgroup import *
 from .blender_decorator import register_class, register_menu
 
 @register_class
@@ -42,3 +43,10 @@ class OBJECT_MT_unity_object_menu(Menu):
 @register_menu(bpy.types.VIEW3D_MT_object)
 def unity_object_menu(self, context):
     self.layout.menu(OBJECT_MT_unity_object_menu.bl_idname)
+
+@register_menu(bpy.types.MESH_MT_vertex_group_context_menu)
+def remove_empty_vertex_groups_menu(self, context):
+    button = self.layout.operator(OBJECT_OT_vertex_group_remove_empty.bl_idname, icon='REMOVE')
+    button.remove_locked = True
+    button = self.layout.operator(OBJECT_OT_vertex_group_remove_empty.bl_idname, text='Delete Unlocked Empty Groups', icon='REMOVE')
+    button.remove_locked = False
