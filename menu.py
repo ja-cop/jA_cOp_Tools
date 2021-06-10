@@ -44,9 +44,23 @@ class OBJECT_MT_unity_object_menu(Menu):
 def unity_object_menu(self, context):
     self.layout.menu(OBJECT_MT_unity_object_menu.bl_idname)
 
+@register_class
+class OBJECT_MT_remove_empty_vertex_group_menu(Menu):
+    bl_idname = 'OBJECT_MT_remove_empty_vertex_group_menu'
+    bl_label = 'Remove Empty Groups'
+
+    def draw(self, context):
+        all_empty_button = self.layout.operator(
+            OBJECT_OT_vertex_group_remove_empty.bl_idname,
+            text='All Empty')
+        all_empty_button.remove_locked = True
+
+        unlocked_empty_button = self.layout.operator(
+            OBJECT_OT_vertex_group_remove_empty.bl_idname,
+            icon='UNLOCKED',
+            text='Unlocked Empty')
+        unlocked_empty_button.remove_locked = False
+
 @register_menu(bpy.types.MESH_MT_vertex_group_context_menu)
 def remove_empty_vertex_groups_menu(self, context):
-    button = self.layout.operator(OBJECT_OT_vertex_group_remove_empty.bl_idname, icon='REMOVE')
-    button.remove_locked = True
-    button = self.layout.operator(OBJECT_OT_vertex_group_remove_empty.bl_idname, text='Delete Unlocked Empty Groups', icon='REMOVE')
-    button.remove_locked = False
+    self.layout.menu(OBJECT_MT_remove_empty_vertex_group_menu.bl_idname, icon='REMOVE')
