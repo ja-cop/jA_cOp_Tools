@@ -4,7 +4,7 @@ Blender addon with various tools.
 
 # Installation
 
-There are no releases yet, so click Code -> Download ZIP on Github to download the latest version. In Blender, go to Edit -> Preferences -> Add-ons -> Install, and select the downloaded ZIP file.
+Download the [latest release](https://github.com/ja-cop/jA_cOp_Tools/releases) from Github. In Blender, go to Edit -> Preferences -> Add-ons -> Install, and select the downloaded ZIP file.
 
 # Unity Animations
 
