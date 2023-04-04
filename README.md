@@ -66,6 +66,12 @@ Note: vertex groups containing only zero-weights are not counted as empty and ar
 
 Same as above, but locked groups are preserved even when they are empty.
 
+# Delete Empty Shape Keys
+
+Location: `Object > Delete Empty Shape Keys`
+
+Delete empty shape keys on all selected mesh objects. A shape key is considered to be "empty" when all vertices are within the provided `threshold` distance (default: `0.0001`) of the shape key's relative key (e.g. `Basis`). Useful for cleaning up shape keys after deleting geometry or splitting meshes. For convenience, there is also an option to ignore muted shape keys.
+
 # Warn on editing shape key
 
 Location: this addon's preferences

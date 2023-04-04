@@ -1,6 +1,7 @@
 bl_info = {
     'name': "jA_cOp's Tools",
     'blender': (2, 92, 0),
+    'version': (0, 2, 0),
     'category': 'Object',
     'author': 'jA_cOp',
     'description': 'Various tools'
