@@ -46,6 +46,8 @@ These actions are useful for setting the "connected" state for bones in bulk. Ap
 
 Sets "connected" for each selected bone. Can also be used to disconnect the selected bones.
 
+Note: this can also be accomplished by holding alt while clicking the `Connected` checkbox in bone properties.
+
 ## Connect Bones By Distance
 
 For every bone on the armature, sets "connected" if the bone's head is within the specified distance of the parent bone's tail. Useful for connecting bones on an imported rig that has the bones aligned but no bones marked "connected".
