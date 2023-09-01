@@ -72,6 +72,12 @@ Location: `Object > Delete Empty Shape Keys`
 
 Delete empty shape keys on all selected mesh objects. A shape key is considered to be "empty" when all vertices are within the provided `threshold` distance (default: `0.0001`) of the shape key's relative key (e.g. `Basis`). Useful for cleaning up shape keys after deleting geometry or splitting meshes. For convenience, there is also an option to ignore muted shape keys.
 
+# List Unsaved Images
+
+Location `Image > List Unsaved Images`
+
+Shows a list of modified images that have yet to be saved (aka "dirty images"). The list provides save and discard buttons for each image.
+
 # Warn on editing shape key
 
 Location: this addon's preferences

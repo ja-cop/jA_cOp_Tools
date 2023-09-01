@@ -7,6 +7,8 @@ from .operator.vertexgroup import *
 from .operator.shapekey import *
 from .blender_decorator import register_class, register_menu
 
+from .operator.image import *
+
 @register_class
 class OBJECT_MT_connect_bones_menu(Menu):
     bl_idname = 'OBJECT_MT_connect_bones_menu'
@@ -70,3 +72,7 @@ class OBJECT_MT_remove_empty_vertex_group_menu(Menu):
 @register_menu(bpy.types.MESH_MT_vertex_group_context_menu)
 def remove_empty_vertex_groups_menu(self, context):
     self.layout.menu(OBJECT_MT_remove_empty_vertex_group_menu.bl_idname, icon='REMOVE')
+
+@register_menu(bpy.types.IMAGE_MT_image)
+def list_unsaved_images_menu(self, context):
+    self.layout.operator(IMAGE_MT_list_unsaved_images.bl_idname)
