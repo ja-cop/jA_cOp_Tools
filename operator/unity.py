@@ -28,6 +28,10 @@ class OBJECT_OT_load_unity_blendshape_anim(Operator, ImportHelper):
                                          default=True,
                                          description='Disable the shape key lock')
 
+    ignore_object_name: BoolProperty(name='Ignore object name',
+                                     default=True,
+                                     description="Load blendshapes even when the referenced object name doesn't match the active object")
+
     def execute(self, context):
         obj = context.active_object
         key_blocks = obj.data.shape_keys.key_blocks
@@ -36,7 +40,9 @@ class OBJECT_OT_load_unity_blendshape_anim(Operator, ImportHelper):
         with open(self.filepath) as f:
             # Remove YAML tag
             lines = f.readlines()[3:]
-            shape_mix = unity.anim_clip_to_shape_mix('\n'.join(lines), object_path)
+            shape_mix = unity.anim_clip_to_shape_mix(
+                '\n'.join(lines),
+                object_path if self.ignore_object_name else None)
 
         if self.clear:
             bpy.ops.object.shape_key_clear()
@@ -70,7 +76,7 @@ class OBJECT_OT_save_unity_blendshape_anim(Operator, ExportHelper):
 
     def execute(self, context):
         obj = context.active_object
-        (root, ext) = os.path.splitext(self.filepath)
+        (root, _) = os.path.splitext(self.filepath)
         clip_name = os.path.basename(root)
 
         shape_keys = {}

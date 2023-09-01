@@ -115,7 +115,7 @@ def make_toggle_anim_clip(name, paths, is_active):
     curves = [curve(path, UnityClassID.GAME_OBJECT, 'm_IsActive', value) for path in paths]
     return make_animation_clip(name, curves)
 
-def anim_clip_to_shape_mix(anim_clip_src, path_to_mesh_object):
+def anim_clip_to_shape_mix(anim_clip_src, path):
     anim_clip = yaml.safe_load(anim_clip_src)
     curves = anim_clip['AnimationClip']['m_FloatCurves']
     shape_mix = {}
@@ -124,7 +124,8 @@ def anim_clip_to_shape_mix(anim_clip_src, path_to_mesh_object):
         if len(components) == 2:
             frames = curve['curve']['m_Curve']
             (attribute_type, attribute_name) = components
-            if frames and attribute_type =='blendShape' and curve['path'] == path_to_mesh_object:
+            is_path_match = not path or curve['path'] == path
+            if frames and attribute_type =='blendShape' and is_path_match:
                 first_frame = frames[0]
                 shape_mix[attribute_name] = float(first_frame['value']) / 100
     return shape_mix
